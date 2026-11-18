@@ -1,0 +1,19 @@
+﻿@{
+    ViewData["Title"] = "Početna";
+}
+
+<div class="text-center">
+    <h1 class="display-5">Privatni časovi</h1>
+    <p class="lead">
+        Predavači objavljuju oglase za časove koje drže, a učenici ih pretražuju,
+        ocenjuju i čuvaju među omiljenima.
+    </p>
+
+    @* Only an anonymous visitor ever reads this: HomeController.Index sends a signed-in
+       korisnik on to the pretraga, which is their home page. *@
+    <p>Oglasi su vidljivi samo prijavljenim korisnicima.</p>
+    <p>
+        <a asp-controller="Account" asp-action="Register" class="btn btn-primary">Registruj se</a>
+        <a asp-controller="Account" asp-action="Login" class="btn btn-outline-primary">Prijavi se</a>
+    </p>
+</div>

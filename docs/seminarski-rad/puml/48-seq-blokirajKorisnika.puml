@@ -1,0 +1,53 @@
+@startuml
+!include style.iuml
+skinparam maxMessageSize 150
+
+title Dijagram sekvenci — sistemska operacija blokirajKorisnika()
+actor "Administrator" as A
+box "Prezentacioni sloj" #FBFCFE
+  participant "Admin/Korisnici.cshtml\n:View" as V
+end box
+box "Poslovna logika" #FBFCFE
+  participant ":AdminController" as C
+  participant ":UserManager\n<Korisnik>" as UM
+end box
+box "Pristup podacima" #FBFCFE
+  participant ":KorisnikRepository" as KR
+  participant ":ApplicationDbContext" as CTX
+end box
+database "PrivatniCasovi" as DB
+
+A -> V : klikće "Blokiraj" u redu korisnika
+V -> C : POST Blokiraj(id)
+activate C
+note right of C : [Authorize(Roles = Administrator)]
+C -> UM : GetUserId(User)
+UM --> C : sopstveniId
+alt administrator blokira sopstveni nalog
+  C --> V : "Ne možete blokirati sami sebe."
+else
+  C -> KR : PostaviAktivnostAsync(id, false)
+  activate KR
+  KR -> CTX : Users.SingleOrDefaultAsync(k => k.Id == id)
+  CTX -> DB : SELECT FROM AspNetUsers
+  CTX --> KR : Korisnik?
+  alt korisnik ne postoji
+    KR --> C : false
+    C --> V : NotFound()
+  else korisnik postoji
+    KR -> KR : korisnik.Aktivan = false
+    KR -> CTX : SaveChangesAsync()
+    CTX -> DB : UPDATE AspNetUsers SET Aktivan = 0
+    KR --> C : true
+  end
+  deactivate KR
+  C -> UM : UpdateSecurityStampAsync(korisnik)
+  UM -> CTX : SaveChangesAsync()
+  CTX -> DB : UPDATE AspNetUsers SET SecurityStamp = ...
+  note right of UM : postojeći kolačić prestaje da važi — sesija se prekida
+  C --> V : Redirect + "Korisnik je blokiran."
+end
+deactivate C
+V --> A : korisnik označen kao blokiran, njegovi oglasi nestaju iz pretrage
+
+@enduml

@@ -1,0 +1,27 @@
+@startuml
+!include style.iuml
+skinparam maxMessageSize 240
+
+title Kolaboracioni dijagram — dodajUOmiljene()
+hide empty members
+skinparam nodesep 55
+skinparam ranksep 60
+object ":Učenik" as A
+object ":OmiljeniController" as C
+object ":KorisnikRepository" as KR
+object ":OmiljeniRepository" as OMR
+object ":Omiljeni" as O
+object ":ApplicationDbContext" as CTX
+object "PrivatniCasovi : MS SQL" as DB
+
+A --> C : 1: Dodaj(predavacId)
+C --> KR : 2: PredavacAsync(predavacId)
+KR --> DB : 3: SELECT AspNetUsers
+C --> OMR : 4: DodajAsync(ucenikId, predavacId)
+OMR --> DB : 5: PostojiAsync — SELECT nad Omiljeni
+OMR --> O : 6: create(ucenikId, predavacId)
+OMR --> CTX : 7: Omiljeni.Add(par)
+OMR --> CTX : 8: SaveChangesAsync()
+CTX --> DB : 9: INSERT INTO Omiljeni
+
+@enduml

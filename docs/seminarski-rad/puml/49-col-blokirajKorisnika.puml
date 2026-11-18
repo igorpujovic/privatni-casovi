@@ -1,0 +1,29 @@
+@startuml
+!include style.iuml
+skinparam maxMessageSize 240
+
+title Kolaboracioni dijagram — blokirajKorisnika()
+hide empty members
+skinparam nodesep 55
+skinparam ranksep 60
+object ":Administrator" as A
+object ":AdminController" as C
+object ":KorisnikRepository" as KR
+object ":Korisnik" as K
+object ":UserManager<Korisnik>" as UM
+object ":ApplicationDbContext" as CTX
+object "PrivatniCasovi : MS SQL" as DB
+
+A --> C : 1: Blokiraj(id)
+C --> UM : 2: GetUserId(User)
+C --> C : 3: provera — nije sopstveni nalog
+C --> KR : 4: PostaviAktivnostAsync(id, false)
+KR --> CTX : 5: Users.SingleOrDefaultAsync(id)
+CTX --> DB : 6: SELECT AspNetUsers
+KR --> K : 7: Aktivan = false
+KR --> CTX : 8: SaveChangesAsync()
+CTX --> DB : 9: UPDATE AspNetUsers SET Aktivan = 0
+C --> UM : 10: UpdateSecurityStampAsync(korisnik)
+UM --> DB : 11: UPDATE SecurityStamp — prekid sesije
+
+@enduml

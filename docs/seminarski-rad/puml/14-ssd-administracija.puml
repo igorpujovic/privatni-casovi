@@ -1,0 +1,30 @@
+@startuml
+!include style.iuml
+skinparam maxMessageSize 170
+
+title Sistemski dijagram sekvenci — UC20 Blokiranje korisnika i UC25 Statistika
+actor "Administrator" as A
+participant ":Sistem" as S
+
+A -> S : prikaziKorisnike()
+activate S
+S --> A : svi korisnici sa ulogom i statusom naloga
+deactivate S
+
+A -> S : blokirajKorisnika(korisnikId)
+activate S
+alt administrator blokira sopstveni nalog
+  S --> A : "Ne možete blokirati sami sebe."
+else korisnik ne postoji
+  S --> A : stranica "404 — nije pronađeno"
+else nalog je blokiran
+  S --> A : "Korisnik je blokiran." — sesija korisnika je prekinuta, a njegovi oglasi nestaju iz pretrage
+end
+deactivate S
+
+A -> S : prikaziStatistiku()
+activate S
+S --> A : broj korisnika po ulogama, broj oglasa u pretrazi, predmeti i oblasti sa najviše oglasa, predavači sa najviše ocena
+deactivate S
+
+@enduml

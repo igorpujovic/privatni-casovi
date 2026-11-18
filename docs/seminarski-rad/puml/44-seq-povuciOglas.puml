@@ -1,0 +1,49 @@
+@startuml
+!include style.iuml
+skinparam maxMessageSize 150
+
+title Dijagram sekvenci — sistemska operacija povuciOglas()
+actor "Predavač" as A
+box "Prezentacioni sloj" #FBFCFE
+  participant "MojiOglasi/Index.cshtml\n:View" as V
+end box
+box "Poslovna logika" #FBFCFE
+  participant ":MojiOglasiController" as C
+  participant ":UserManager\n<Korisnik>" as UM
+end box
+box "Pristup podacima" #FBFCFE
+  participant ":OglasRepository" as OR
+  participant ":ApplicationDbContext" as CTX
+end box
+database "PrivatniCasovi" as DB
+
+A -> V : klikće "Povuci oglas"
+V -> C : POST Deaktiviraj(id)
+activate C
+C -> OR : GetByIdAsync(id)
+OR -> CTX : Oglasi.FindAsync(id)
+CTX -> DB : SELECT FROM Oglasi WHERE Id = @id
+DB --> CTX : red ili prazno
+CTX --> OR : Oglas?
+OR --> C : Oglas?
+C -> UM : GetUserId(User)
+UM --> C : predavacId
+C -> C : oglas.PredavacId == predavacId ?
+alt oglas ne pripada prijavljenom predavaču
+  C --> V : Forbid() — 403
+else oglas pripada predavaču
+  C -> OR : DeaktivirajAsync(id)
+  activate OR
+  OR -> CTX : Oglasi.FindAsync(id)
+  OR -> OR : oglas.Aktivan = false
+  OR -> CTX : SaveChangesAsync()
+  CTX -> DB : UPDATE Oglasi SET Aktivan = 0 WHERE Id = @id
+  DB --> CTX : ok
+  OR --> C : true
+  deactivate OR
+  C --> V : Redirect na "Moji oglasi" + "Oglas je povučen."
+end
+deactivate C
+V --> A : oglas označen kao povučen — nestaje iz pretrage, ostaje u listi
+
+@enduml

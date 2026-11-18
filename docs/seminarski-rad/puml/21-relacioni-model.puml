@@ -1,0 +1,88 @@
+@startuml
+!include style.iuml
+
+hide circle
+hide methods
+skinparam linetype ortho
+
+entity "AspNetUsers" as U {
+  <b>Id</b> : nvarchar(450) <<PK>>
+  --
+  Ime : nvarchar(100) NOT NULL
+  Prezime : nvarchar(100) NOT NULL
+  Telefon : nvarchar(30) NOT NULL
+  Biografija : nvarchar(1000) NULL
+  SlikaFajl : nvarchar(255) NULL
+  Aktivan : bit NOT NULL
+  ..Identity kolone..
+  UserName, NormalizedUserName
+  Email, NormalizedEmail
+  PasswordHash, SecurityStamp
+  ConcurrencyStamp, LockoutEnd, ...
+}
+
+entity "AspNetRoles" as R {
+  <b>Id</b> : nvarchar(450) <<PK>>
+  --
+  Name : nvarchar(256) NULL
+  NormalizedName : nvarchar(256) NULL
+  ConcurrencyStamp : nvarchar(max) NULL
+}
+
+entity "AspNetUserRoles" as UR {
+  <b>UserId</b> : nvarchar(450) <<PK, FK>>
+  <b>RoleId</b> : nvarchar(450) <<PK, FK>>
+}
+
+entity "Oblasti" as OB {
+  <b>Id</b> : int IDENTITY <<PK>>
+  --
+  Naziv : nvarchar(100) NOT NULL
+}
+
+entity "Predmeti" as PR {
+  <b>Id</b> : int IDENTITY <<PK>>
+  --
+  Naziv : nvarchar(100) NOT NULL
+  OblastId : int NOT NULL <<FK>>
+}
+
+entity "Oglasi" as OG {
+  <b>Id</b> : int IDENTITY <<PK>>
+  --
+  PredavacId : nvarchar(450) NOT NULL <<FK>>
+  PredmetId : int NOT NULL <<FK>>
+  CenaCasa : decimal(10,2) NOT NULL
+  Lokacija : int NOT NULL
+  Dostupnost : nvarchar(500) NOT NULL
+  DatumKreiranja : datetime2 NOT NULL
+  Aktivan : bit NOT NULL
+}
+
+entity "Ocene" as OC {
+  <b>Id</b> : int IDENTITY <<PK>>
+  --
+  UcenikId : nvarchar(450) NOT NULL <<FK>>
+  PredavacId : nvarchar(450) NOT NULL <<FK>>
+  Vrednost : int NOT NULL
+  ..
+  UNIQUE (UcenikId, PredavacId)
+  CHECK (Vrednost BETWEEN 1 AND 5)
+}
+
+entity "Omiljeni" as OM {
+  <b>UcenikId</b> : nvarchar(450) <<PK, FK>>
+  <b>PredavacId</b> : nvarchar(450) <<PK, FK>>
+}
+
+U ||--o{ UR
+R ||--o{ UR
+OB ||--|{ PR
+PR ||--o{ OG
+U ||--o{ OG : PredavacId
+U ||--o{ OC : UcenikId
+U ||--o{ OC : PredavacId
+U ||--o{ OM : UcenikId
+U ||--o{ OM : PredavacId
+
+@enduml

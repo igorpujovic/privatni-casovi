@@ -1,0 +1,60 @@
+@startuml
+!include style.iuml
+skinparam maxMessageSize 150
+
+title Dijagram sekvenci — sistemska operacija oceniPredavaca()
+actor "Učenik" as A
+box "Prezentacioni sloj" #FBFCFE
+  participant "Predavac/Profil.cshtml\n:View" as V
+end box
+box "Poslovna logika" #FBFCFE
+  participant ":OcenaController" as C
+  participant ":UserManager\n<Korisnik>" as UM
+end box
+box "Pristup podacima" #FBFCFE
+  participant ":KorisnikRepository" as KR
+  participant ":OcenaRepository" as OCR
+  participant ":ApplicationDbContext" as CTX
+end box
+database "PrivatniCasovi" as DB
+
+A -> V : bira ocenu 1..5 i šalje formu
+V -> C : POST Oceni(OcenaFormViewModel)
+activate C
+note right of C : [Authorize(Roles = Ucenik)] — proverava se pre ulaska u akciju
+C -> KR : PredavacAsync(model.PredavacId)
+KR -> DB : SELECT WHERE Id = @id AND Aktivan = 1
+KR --> C : Korisnik?
+alt predavač ne postoji ili je blokiran
+  C --> V : NotFound()
+else
+  C -> C : ModelState.IsValid — [Required] i [Range(1,5)]
+  alt ocena nije ispravna
+    C --> V : TempData["Greska"] + Redirect na profil
+  else ocena je ispravna
+    C -> UM : GetUserId(User)
+    UM --> C : ucenikId
+    C -> OCR : PostojecaAsync(ucenikId, predavacId)
+    OCR -> DB : SELECT WHERE UcenikId = @u AND PredavacId = @p
+    OCR --> C : Ocena?
+    alt ocena ne postoji
+      C -> OCR : Add(new Ocena{ UcenikId, PredavacId, Vrednost })
+      OCR -> CTX : Ocene.Add(ocena)
+    else ocena postoji
+      C -> C : postojeca.Vrednost = model.Vrednost
+      C -> OCR : Update(postojeca)
+      OCR -> CTX : Ocene.Update(ocena)
+    end
+    C -> OCR : SaveChangesAsync()
+    OCR -> CTX : SaveChangesAsync()
+    CTX -> DB : INSERT ili UPDATE nad Ocene
+    DB --> CTX : ok
+    CTX --> OCR : 1
+    OCR --> C : Task
+    C --> V : Redirect na profil + "Ocena je sačuvana." / "Ocena je izmenjena."
+  end
+end
+deactivate C
+V --> A : osvežena prosečna ocena predavača
+
+@enduml

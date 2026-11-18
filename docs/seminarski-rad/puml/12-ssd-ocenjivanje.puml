@@ -1,0 +1,27 @@
+@startuml
+!include style.iuml
+skinparam maxMessageSize 170
+
+title Sistemski dijagram sekvenci — UC07 Ocenjivanje predavača i UC08 Izmena ocene
+actor "Učenik" as U
+participant ":Sistem" as S
+
+U -> S : prikaziProfilPredavaca(predavacId)
+activate S
+S --> U : lični podaci, biografija, prosečna ocena, broj ocena, aktivni oglasi, sopstvena ocena
+deactivate S
+
+U -> S : oceniPredavaca(predavacId, vrednost)
+activate S
+alt predavač ne postoji ili je blokiran
+  S --> U : stranica "404 — nije pronađeno"
+else ocena nije izabrana ili je van opsega 1..5
+  S --> U : "Izaberite ocenu." / "Ocena mora biti ceo broj od 1 do 5."
+else učenik još nije ocenio predavača
+  S --> U : "Ocena je sačuvana." i osvežena prosečna ocena
+else učenik je već ocenio predavača
+  S --> U : "Ocena je izmenjena." i osvežena prosečna ocena
+end
+deactivate S
+
+@enduml

@@ -1,0 +1,52 @@
+@startuml
+!include style.iuml
+skinparam maxMessageSize 150
+
+title Dijagram sekvenci — sistemska operacija prijaviSe()
+actor "Posetilac" as A
+box "Prezentacioni sloj" #FBFCFE
+  participant "Login.cshtml\n:View" as V
+end box
+box "Poslovna logika" #FBFCFE
+  participant ":AccountController" as C
+  participant ":KorisnikSignInManager" as SM
+  participant ":UserManager\n<Korisnik>" as UM
+end box
+box "Pristup podacima" #FBFCFE
+  participant ":ApplicationDbContext" as CTX
+end box
+database "PrivatniCasovi" as DB
+
+A -> V : unosi email i lozinku
+V -> C : POST Login(PrijavaViewModel)
+activate C
+C -> SM : PasswordSignInAsync(email, lozinka, false, false)
+activate SM
+SM -> UM : FindByNameAsync(email)
+UM -> CTX : upit nad Users
+CTX -> DB : SELECT FROM AspNetUsers WHERE NormalizedUserName = ...
+DB --> CTX : red
+CTX --> UM : Korisnik
+UM --> SM : Korisnik
+SM -> SM : CanSignInAsync(korisnik)\n[override: korisnik.Aktivan]
+alt nalog je blokiran (Aktivan = false)
+  SM --> C : SignInResult.NotAllowed
+  C -> UM : CheckPasswordAsync(korisnik, lozinka)
+  UM --> C : true
+  C --> V : "Vaš pristup je blokiran. Obratite se administratoru."
+else nalog je aktivan
+  SM -> SM : provera heša lozinke
+  alt lozinka nije ispravna
+    SM --> C : SignInResult.Failed
+    C --> V : "Pogrešan email ili lozinka."
+  else lozinka je ispravna
+    SM -> SM : SignInAsync — upis autentifikacionog kolačića
+    SM --> C : SignInResult.Success
+    C --> V : RedirectToLocal(returnUrl)
+  end
+end
+deactivate SM
+deactivate C
+V --> A : rezultat prijave
+
+@enduml

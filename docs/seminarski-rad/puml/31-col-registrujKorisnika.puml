@@ -1,0 +1,27 @@
+@startuml
+!include style.iuml
+skinparam maxMessageSize 240
+
+title Kolaboracioni dijagram — registrujKorisnika()
+hide empty members
+skinparam nodesep 55
+skinparam ranksep 60
+object ":Posetilac" as A
+object ":AccountController" as C
+object ":UserManager<Korisnik>" as UM
+object ":ApplicationDbContext" as CTX
+object ":Korisnik" as K
+object "PrivatniCasovi : MS SQL" as DB
+
+A --> C : 1: Register(model)
+C --> C : 2: ModelState.IsValid
+C --> K : 3: create(ime, prezime, telefon, email)
+C --> UM : 4: CreateAsync(korisnik, lozinka)
+UM --> CTX : 5: Users.Add(korisnik)
+UM --> CTX : 6: SaveChangesAsync()
+CTX --> DB : 7: INSERT INTO AspNetUsers
+C --> UM : 8: AddToRoleAsync(korisnik, uloga)
+UM --> CTX : 9: SaveChangesAsync()
+CTX --> DB : 10: INSERT INTO AspNetUserRoles
+
+@enduml

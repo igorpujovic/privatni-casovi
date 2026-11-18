@@ -1,0 +1,40 @@
+@model RangTabelaViewModel
+
+@* One „sa najviše oglasa“ table, rendered twice by Statistika.cshtml — once over predmeti and
+   once over oblasti. The two differ in four strings and the collection, all of which are on
+   the model; the markup was identical, down to the empty row and the rank cell. *@
+
+<div class="card h-100">
+    <div class="card-body">
+        <h2 class="h5">@Model.Naslov</h2>
+        <p class="text-muted small">@Model.Opis</p>
+
+        <div class="table-responsive">
+            <table class="table table-sm table-striped align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col" class="text-muted">#</th>
+                        <th scope="col">@Model.KolonaNaziv</th>
+                        <th scope="col" class="text-end">Oglasa</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Stavke.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="3" class="text-muted">@Model.Prazno</td>
+                        </tr>
+                    }
+                    @for (var i = 0; i < Model.Stavke.Count; i++)
+                    {
+                        <tr>
+                            <td class="text-muted">@(i + 1).</td>
+                            <td>@Model.Stavke[i].Naziv</td>
+                            <td class="text-end">@Model.Stavke[i].BrojOglasa</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

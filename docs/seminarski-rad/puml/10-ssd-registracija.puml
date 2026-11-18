@@ -1,0 +1,34 @@
+@startuml
+!include style.iuml
+skinparam maxMessageSize 170
+
+title Sistemski dijagram sekvenci — UC01 Registracija i UC02 Prijava
+actor "Posetilac" as P
+participant ":Sistem" as S
+
+P -> S : otvoriFormuZaRegistraciju()
+activate S
+S --> P : prazna forma sa izborom uloge
+deactivate S
+
+P -> S : registrujKorisnika(ime, prezime, telefon, email, lozinka, potvrdaLozinke, uloga)
+activate S
+alt podaci nisu ispravni ili je email zauzet
+  S --> P : poruke o greškama uz polja forme
+else podaci su ispravni
+  S --> P : "Registracija je uspešna. Prijavite se."
+end
+deactivate S
+
+P -> S : prijaviSe(email, lozinka)
+activate S
+alt nalog je blokiran
+  S --> P : "Vaš pristup je blokiran. Obratite se administratoru."
+else pogrešan email ili lozinka
+  S --> P : "Pogrešan email ili lozinka."
+else ispravni pristupni podaci
+  S --> P : autentifikacioni kolačić i ekran pretrage oglasa
+end
+deactivate S
+
+@enduml

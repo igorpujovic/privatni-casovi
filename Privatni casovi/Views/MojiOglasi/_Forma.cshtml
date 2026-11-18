@@ -1,0 +1,54 @@
+@model OglasFormViewModel
+
+@* The fields shared by Create and Edit. The <form> element itself stays with the two views,
+   because only they know which action and which id they post to. *@
+
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+<div class="mb-3">
+    <label asp-for="PredmetId" class="form-label"></label>
+
+    @* One select with an optgroup per oblast — no cascading second dropdown and no
+       JavaScript. The tag helper marks the option matching PredmetId as selected. *@
+    <select asp-for="PredmetId" class="form-select">
+        <option value="">— izaberite predmet —</option>
+        @foreach (var oblast in Model.Oblasti)
+        {
+            <optgroup label="@oblast.Naziv">
+                @foreach (var predmet in oblast.Predmeti)
+                {
+                    <option value="@predmet.Id">@predmet.Naziv</option>
+                }
+            </optgroup>
+        }
+    </select>
+    <span asp-validation-for="PredmetId" class="text-danger"></span>
+    <div class="form-text">Jedan oglas oglašava tačno jedan predmet.</div>
+</div>
+
+<div class="mb-3">
+    <label asp-for="CenaCasa" class="form-label"></label>
+    <input asp-for="CenaCasa" class="form-control" type="number" step="0.01" min="0.01" />
+    <span asp-validation-for="CenaCasa" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Lokacija" class="form-label"></label>
+    <select asp-for="Lokacija" asp-items="Html.GetEnumSelectList<Lokacija>()" class="form-select">
+        <option value="">— izaberite lokaciju —</option>
+    </select>
+    <span asp-validation-for="Lokacija" class="text-danger"></span>
+    <div class="form-text">
+        Učenik koji traži časove online ili uživo vidi i oglase otvorene za oba načina.
+    </div>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Dostupnost" class="form-label"></label>
+    <textarea asp-for="Dostupnost" class="form-control" rows="3" maxlength="500"></textarea>
+    <span asp-validation-for="Dostupnost" class="text-danger"></span>
+    <div class="form-text">
+        Kada ste slobodni da držite časove, vašim rečima — npr. „radnim danima posle 17h".
+        Učenik vas kontaktira direktno; platforma ne zakazuje termine.
+    </div>
+</div>

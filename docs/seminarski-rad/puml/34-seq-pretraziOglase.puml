@@ -1,0 +1,50 @@
+@startuml
+!include style.iuml
+skinparam maxMessageSize 150
+
+title Dijagram sekvenci — sistemska operacija pretraziOglase()
+actor "Prijavljeni korisnik" as A
+box "Prezentacioni sloj" #FBFCFE
+  participant "Pretraga/Index.cshtml\n:View" as V
+end box
+box "Poslovna logika" #FBFCFE
+  participant ":PretragaController" as C
+end box
+box "Pristup podacima" #FBFCFE
+  participant ":OglasRepository" as OR
+  participant ":PredmetRepository" as PR
+  participant ":ApplicationDbContext" as CTX
+end box
+database "PrivatniCasovi" as DB
+
+A -> V : bira oblast, predmet, lokaciju, maksimalnu cenu i sortiranje
+V -> C : GET Index(PretragaViewModel)
+activate C
+C -> C : Sortiranje.Prepoznat(sortBy)
+C -> C : odbacivanje neispravne maksimalne cene
+C -> OR : PretragaAsync(oblastId, predmetId, lokacija, maxCena, sortBy)
+activate OR
+OR -> OR : Vidljivi() — Aktivan && Predavac.Aktivan
+OR -> OR : dodavanje filtera koji nisu null
+OR -> OR : Sortirano(upit, sortBy)
+OR -> OR : SaOcenom(upit) — prosečna ocena i broj ocena u istom prolazu
+OR -> CTX : ToListAsync()
+CTX -> DB : SELECT FROM Oglasi JOIN Predmeti JOIN Oblasti JOIN AspNetUsers WHERE ... ORDER BY ...
+DB --> CTX : redovi
+CTX --> OR : List<OglasSaOcenom>
+OR --> C : IReadOnlyList<OglasSaOcenom>
+deactivate OR
+C -> C : UkupnoRezultata, UkupnoStrana, Strana = Clamp(...), Skip/Take
+C -> PR : OblastiSaPredmetimaAsync()
+activate PR
+PR -> CTX : Oblasti.Include(Predmeti).ToListAsync()
+CTX -> DB : SELECT FROM Oblasti, Predmeti
+DB --> CTX : redovi
+CTX --> PR : List<Oblast>
+PR --> C : IReadOnlyList<Oblast>
+deactivate PR
+C --> V : View(model)
+deactivate C
+V --> A : rezultati pretrage sa paginacijom
+
+@enduml

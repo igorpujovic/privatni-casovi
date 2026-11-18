@@ -1,0 +1,98 @@
+@model IReadOnlyList<AdminKorisnikViewModel>
+@{
+    ViewData["Title"] = "Korisnici";
+}
+
+@* Every korisnik, blocked ones included — one of the two listings in the application that
+   show deactivated rows to somebody who does not own them.
+
+   There is no delete button here and there is not meant to be one (ADR-0001). Blokiraj is the
+   removal: a blocked korisnik cannot sign in, a blocked predavač's oglasi leave the pretraga
+   and their profil 404s, and every one of those effects is undone by Odblokiraj because the
+   rows were never touched. *@
+
+<div class="row align-items-center mb-4">
+    <div class="col-sm">
+        <h1 class="h3 mb-0">Korisnici</h1>
+    </div>
+    <div class="col-sm-auto mt-2 mt-sm-0 text-sm-end">
+        <span class="text-muted small">@Mnozina.Broj(Model.Count, "korisnik", "korisnika", "korisnika")</span>
+    </div>
+</div>
+
+@if (TempData["Poruka"] != null)
+{
+    <div class="alert alert-success">@TempData["Poruka"]</div>
+}
+
+@* The refusal an administrator reads after posting a block of themselves. *@
+@if (TempData["Greska"] != null)
+{
+    <div class="alert alert-danger">@TempData["Greska"]</div>
+}
+
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th scope="col">Korisnik</th>
+                <th scope="col">Email</th>
+                <th scope="col">Telefon</th>
+                <th scope="col">Uloga</th>
+                <th scope="col">Status</th>
+                <th scope="col" class="text-end">Akcije</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var red in Model)
+            {
+                <tr>
+                    <td>
+                        @red.Korisnik.Ime @red.Korisnik.Prezime
+                        @if (red.JeJa)
+                        {
+                            <span class="badge bg-light text-dark border ms-1">Vi</span>
+                        }
+                    </td>
+                    <td>@red.Korisnik.Email</td>
+                    <td class="text-nowrap">@red.Korisnik.Telefon</td>
+                    <td>@red.UlogaNaziv</td>
+                    <td>
+                        @if (red.Korisnik.Aktivan)
+                        {
+                            <span class="badge bg-success text-white">Aktivan</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger text-white">Blokiran</span>
+                        }
+                    </td>
+                    <td class="text-end text-nowrap">
+                        @* An administrator must not be able to block themselves — they could
+                           not sign back in to undo it. The button is left off their row so the
+                           screen offers nothing it will refuse; the action refuses a
+                           hand-crafted POST regardless. *@
+                        @if (red.JeJa)
+                        {
+                            <span class="text-muted small">Prijavljeni administrator</span>
+                        }
+                        else if (red.Korisnik.Aktivan)
+                        {
+                            @* Blocking changes data, so it is a POST with an antiforgery
+                               token, never a link. *@
+                            <form asp-action="Blokiraj" asp-route-id="@red.Korisnik.Id" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Blokiraj</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-action="Odblokiraj" asp-route-id="@red.Korisnik.Id" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-success">Odblokiraj</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

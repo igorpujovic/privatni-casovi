@@ -1,0 +1,31 @@
+@startuml
+!include style.iuml
+skinparam maxMessageSize 240
+
+title Kolaboracioni dijagram — prikaziProfilPredavaca()
+hide empty members
+skinparam nodesep 55
+skinparam ranksep 60
+object ":Prijavljeni korisnik" as A
+object ":PredavacController" as C
+object ":KorisnikRepository" as KR
+object ":OcenaRepository" as OCR
+object ":OglasRepository" as OGR
+object ":OmiljeniRepository" as OMR
+object ":ProfilPredavacaViewModel" as VM
+object "PrivatniCasovi : MS SQL" as DB
+
+A --> C : 1: Profil(id)
+C --> KR : 2: PredavacAsync(id)
+KR --> DB : 3: SELECT AspNetUsers JOIN AspNetUserRoles
+C --> OCR : 4: ProsecnaOcenaAsync(predavacId)
+C --> OCR : 5: BrojOcenaAsync(predavacId)
+C --> OGR : 6: AktivniZaPredavacaAsync(predavacId)
+C --> OCR : 7: PostojecaAsync(ucenikId, predavacId)
+C --> OMR : 8: PostojiAsync(ucenikId, predavacId)
+OCR --> DB : 9: SELECT AVG / COUNT nad Ocene
+OGR --> DB : 10: SELECT nad Oglasi
+OMR --> DB : 11: SELECT nad Omiljeni
+C --> VM : 12: create(predavac, prosek, broj, oglasi, mojaOcena, jeOmiljeni)
+
+@enduml

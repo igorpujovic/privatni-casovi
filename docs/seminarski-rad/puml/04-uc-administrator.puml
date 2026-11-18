@@ -1,0 +1,23 @@
+@startuml
+!include style.iuml
+left to right direction
+actor "Administrator" as A
+rectangle "Privatni časovi" {
+  usecase UC19 as "UC19 Pregled korisničkih naloga"
+  usecase UC20 as "UC20 Blokiranje korisnika"
+  usecase UC21 as "UC21 Odblokiranje korisnika"
+  usecase UC22 as "UC22 Pregled svih oglasa"
+  usecase UC23 as "UC23 Deaktivacija oglasa"
+  usecase UC24 as "UC24 Aktivacija oglasa"
+  usecase UC25 as "UC25 Pregled statistike platforme"
+}
+A --> UC19
+A --> UC20
+A --> UC21
+A --> UC22
+A --> UC23
+A --> UC24
+A --> UC25
+UC20 ..> UC19 : <<include>>
+UC23 ..> UC22 : <<include>>
+@enduml

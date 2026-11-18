@@ -1,0 +1,31 @@
+@startuml
+!include style.iuml
+left to right direction
+
+actor "Posetilac" as Pos
+actor "Prijavljeni korisnik" as PK
+actor "Učenik" as U
+actor "Predavač" as P
+actor "Administrator" as A
+
+rectangle "Privatni časovi" {
+  usecase UC01 as "UC01 Registracija na sistem"
+  usecase UC02 as "UC02 Prijava na sistem"
+  usecase UC03 as "UC03 Odjava sa sistema"
+  usecase UC04 as "UC04 Pretraga oglasa"
+  usecase UC05 as "UC05 Pregled detalja oglasa"
+  usecase UC06 as "UC06 Pregled profila predavača"
+}
+
+Pos --> UC01
+Pos --> UC02
+PK --> UC03
+PK --> UC04
+PK --> UC05
+PK --> UC06
+UC05 ..> UC04 : <<extend>>
+
+U -up-|> PK
+P -up-|> PK
+A -up-|> PK
+@enduml

@@ -1,0 +1,21 @@
+@startuml
+!include style.iuml
+left to right direction
+actor "Predavač" as P
+rectangle "Privatni časovi" {
+  usecase UC12 as "UC12 Kreiranje oglasa"
+  usecase UC13 as "UC13 Izmena oglasa"
+  usecase UC14 as "UC14 Povlačenje oglasa"
+  usecase UC15 as "UC15 Ponovno objavljivanje oglasa"
+  usecase UC16 as "UC16 Pregled sopstvenih ocena"
+  usecase UC17 as "UC17 Ažuriranje ličnih podataka"
+  usecase UC18 as "UC18 Postavljanje fotografije i biografije"
+}
+P --> UC12
+P --> UC13
+P --> UC14
+P --> UC15
+P --> UC16
+P --> UC17
+UC18 ..> UC17 : <<extend>>
+@enduml

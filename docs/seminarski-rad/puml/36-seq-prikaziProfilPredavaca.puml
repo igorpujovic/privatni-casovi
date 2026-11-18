@@ -1,0 +1,50 @@
+@startuml
+!include style.iuml
+skinparam maxMessageSize 150
+
+title Dijagram sekvenci — sistemska operacija prikaziProfilPredavaca()
+actor "Prijavljeni korisnik" as A
+box "Prezentacioni sloj" #FBFCFE
+  participant "Predavac/Profil.cshtml\n:View" as V
+end box
+box "Poslovna logika" #FBFCFE
+  participant ":PredavacController" as C
+end box
+box "Pristup podacima" #FBFCFE
+  participant ":KorisnikRepository" as KR
+  participant ":OcenaRepository" as OCR
+  participant ":OglasRepository" as OGR
+  participant ":OmiljeniRepository" as OMR
+end box
+database "PrivatniCasovi" as DB
+
+A -> V : otvara profil predavača
+V -> C : GET Profil(id)
+activate C
+C -> KR : PredavacAsync(id)
+KR -> DB : SELECT WHERE Id = @id AND Aktivan = 1 AND uloga = Predavac
+DB --> KR : red ili prazno
+KR --> C : Korisnik?
+alt predavač ne postoji ili je blokiran
+  C --> V : NotFound()
+else predavač je vidljiv
+  C -> OCR : ProsecnaOcenaAsync(predavacId)
+  OCR -> DB : SELECT AVG(CAST(Vrednost AS decimal))
+  DB --> OCR : prosek ili NULL
+  OCR --> C : decimal?
+  C -> OCR : BrojOcenaAsync(predavacId)
+  OCR -> DB : SELECT COUNT(*)
+  OCR --> C : int
+  C -> OGR : AktivniZaPredavacaAsync(predavacId)
+  OGR -> DB : SELECT WHERE Aktivan = 1
+  OGR --> C : IReadOnlyList<Oglas>
+  C -> OCR : PostojecaAsync(ucenikId, predavacId)
+  OCR --> C : Ocena? — samo ako je korisnik učenik
+  C -> OMR : PostojiAsync(ucenikId, predavacId)
+  OMR --> C : bool — samo ako je korisnik učenik
+  C --> V : View(ProfilPredavacaViewModel)
+end
+deactivate C
+V --> A : profil, ocene, oglasi i kontakt podaci
+
+@enduml

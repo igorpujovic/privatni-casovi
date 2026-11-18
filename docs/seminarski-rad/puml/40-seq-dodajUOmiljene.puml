@@ -1,0 +1,53 @@
+@startuml
+!include style.iuml
+skinparam maxMessageSize 150
+
+title Dijagram sekvenci — sistemska operacija dodajUOmiljene()
+actor "Učenik" as A
+box "Prezentacioni sloj" #FBFCFE
+  participant "Predavac/Profil.cshtml\n:View" as V
+end box
+box "Poslovna logika" #FBFCFE
+  participant ":OmiljeniController" as C
+  participant ":UserManager\n<Korisnik>" as UM
+end box
+box "Pristup podacima" #FBFCFE
+  participant ":KorisnikRepository" as KR
+  participant ":OmiljeniRepository" as OMR
+  participant ":ApplicationDbContext" as CTX
+end box
+database "PrivatniCasovi" as DB
+
+A -> V : klikće "Dodaj u omiljene"
+V -> C : POST Dodaj(predavacId)
+activate C
+C -> KR : PredavacAsync(predavacId)
+KR -> DB : SELECT WHERE Id = @id AND Aktivan = 1
+KR --> C : Korisnik?
+alt predavač ne postoji ili je blokiran
+  C --> V : NotFound()
+else
+  C -> UM : GetUserId(User)
+  UM --> C : ucenikId
+  C -> OMR : DodajAsync(ucenikId, predavacId)
+  activate OMR
+  OMR -> DB : SELECT COUNT nad Omiljeni
+  alt par već postoji
+    OMR --> C : bez izmene
+  else par ne postoji
+    OMR -> CTX : Omiljeni.Add(new Omiljeni{...}); SaveChangesAsync()
+    CTX -> DB : INSERT INTO Omiljeni
+    alt paralelni zahtev je već upisao par
+      DB --> CTX : povreda primarnog ključa
+      OMR -> OMR : provera da li par postoji — greška se prihvata
+    else
+      DB --> CTX : ok
+    end
+  end
+  deactivate OMR
+  C --> V : Redirect na profil + "Predavač je dodat u omiljene."
+end
+deactivate C
+V --> A : dugme prelazi u "Ukloni iz omiljenih"
+
+@enduml

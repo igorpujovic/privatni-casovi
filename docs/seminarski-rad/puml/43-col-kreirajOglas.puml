@@ -1,0 +1,29 @@
+@startuml
+!include style.iuml
+skinparam maxMessageSize 240
+
+title Kolaboracioni dijagram — kreirajOglas()
+hide empty members
+skinparam nodesep 55
+skinparam ranksep 60
+object ":Predavač" as A
+object ":MojiOglasiController" as C
+object ":PredmetRepository" as PR
+object ":OglasRepository" as OR
+object ":Oglas" as O
+object ":ApplicationDbContext" as CTX
+object "PrivatniCasovi : MS SQL" as DB
+
+A --> C : 1: Create(model)
+C --> PR : 2: GetByIdAsync(model.PredmetId)
+PR --> DB : 3: SELECT FROM Predmeti
+C --> C : 4: ModelState.IsValid
+C --> O : 5: create(predavacId, DateTime.Now, Aktivan = true)
+C --> O : 6: Prepisi(model, oglas)
+C --> OR : 7: Add(oglas)
+OR --> CTX : 8: Oglasi.Add(oglas)
+C --> OR : 9: SaveChangesAsync()
+OR --> CTX : 10: SaveChangesAsync()
+CTX --> DB : 11: INSERT INTO Oglasi
+
+@enduml

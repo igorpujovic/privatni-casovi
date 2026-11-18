@@ -1,0 +1,98 @@
+@model IReadOnlyList<Oglas>
+@{
+    ViewData["Title"] = "Oglasi";
+}
+
+@* Every oglas on the platform, newest first — deactivated ones and blocked predavači's
+   included. As on the korisnici screen there is no delete: Deaktiviraj is the removal, it is
+   the same flag the oglas's own predavač flips from "Moji oglasi", and nothing is erased. *@
+
+<div class="row align-items-center mb-4">
+    <div class="col-sm">
+        <h1 class="h3 mb-0">Oglasi</h1>
+    </div>
+    <div class="col-sm-auto mt-2 mt-sm-0 text-sm-end">
+        <span class="text-muted small">@Mnozina.Broj(Model.Count, "oglas", "oglasa", "oglasa")</span>
+    </div>
+</div>
+
+@if (TempData["Poruka"] != null)
+{
+    <div class="alert alert-success">@TempData["Poruka"]</div>
+}
+
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th scope="col">Predmet</th>
+                <th scope="col">Predavač</th>
+                <th scope="col">Cena časa</th>
+                <th scope="col">Lokacija</th>
+                <th scope="col">Objavljen</th>
+                <th scope="col">Status</th>
+                <th scope="col" class="text-end">Akcije</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var oglas in Model)
+            {
+                <tr>
+                    <td>
+                        @oglas.Predmet?.Naziv
+                        <div class="text-muted small">@oglas.Predmet?.Oblast?.Naziv</div>
+                    </td>
+                    <td>@oglas.Predavac?.Ime @oglas.Predavac?.Prezime</td>
+                    <td class="text-nowrap">@oglas.CenaCasa.ToString("N2") RSD</td>
+                    <td>@Html.DisplayFor(_ => oglas.Lokacija)</td>
+                    <td class="text-nowrap">@oglas.DatumKreiranja.ToString("dd.MM.yyyy.")</td>
+                    <td>
+                        @* Three states, not two. An oglas whose predavač is blocked is still
+                           Aktivan on its own row but is out of the pretraga all the same, and
+                           calling that "Aktivan" here would send an administrator hunting for
+                           an oglas they cannot find. Reactivating it means unblocking the
+                           predavač, which is the korisnici screen.
+
+                           This is the one place the visibility rule is restated outside the
+                           repositories, and it is restating it rather than filtering by it:
+                           the rule itself is OglasRepository.Vidljivi(), `o.Aktivan &&
+                           o.Predavac.Aktivan`, and these three badges are what those two
+                           booleans look like to an administrator. If Vidljivi() ever grows a
+                           third condition, this is the screen that has to grow a fourth badge
+                           — nothing else on the platform reads the flags this way. *@
+                        @if (!oglas.Aktivan)
+                        {
+                            <span class="badge bg-secondary text-white">Deaktiviran</span>
+                        }
+                        else if (oglas.Predavac?.Aktivan == false)
+                        {
+                            <span class="badge bg-warning text-dark">Predavač blokiran</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success text-white">Aktivan</span>
+                        }
+                    </td>
+                    <td class="text-end text-nowrap">
+                        @* The buttons act on the oglas's own flag, which is what this screen
+                           owns — including for an oglas hidden only because its predavač is
+                           blocked, where deactivating it is still a thing an administrator may
+                           decide to do. *@
+                        @if (oglas.Aktivan)
+                        {
+                            <form asp-action="Deaktiviraj" asp-route-id="@oglas.Id" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Deaktiviraj</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-action="Aktiviraj" asp-route-id="@oglas.Id" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-success">Aktiviraj</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

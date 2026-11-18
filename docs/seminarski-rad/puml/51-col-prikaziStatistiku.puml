@@ -1,0 +1,28 @@
+@startuml
+!include style.iuml
+skinparam maxMessageSize 240
+
+title Kolaboracioni dijagram — prikaziStatistiku()
+hide empty members
+skinparam nodesep 55
+skinparam ranksep 60
+object ":Administrator" as A
+object ":AdminController" as C
+object ":KorisnikRepository" as KR
+object ":OglasRepository" as OGR
+object ":OcenaRepository" as OCR
+object ":StatistikaViewModel" as VM
+object "PrivatniCasovi : MS SQL" as DB
+
+A --> C : 1: Statistika()
+C --> KR : 2: BrojAktivnihPoUloziAsync()
+C --> OGR : 3: BrojVidljivihAsync()
+C --> OGR : 4: TopPredmetiAsync(5)
+C --> OGR : 5: TopOblastiAsync(5)
+C --> OCR : 6: TopPredavaciAsync(5)
+KR --> DB : 7: SELECT COUNT GROUP BY uloga
+OGR --> DB : 8: SELECT COUNT / GROUP BY nad Oglasi
+OCR --> DB : 9: GROUP BY nad Ocene JOIN AspNetUsers
+C --> VM : 10: create(brojevi, TopPredmeti, TopOblasti, TopPredavaci)
+
+@enduml

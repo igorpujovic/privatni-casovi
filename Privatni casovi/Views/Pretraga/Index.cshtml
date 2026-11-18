@@ -1,0 +1,171 @@
+@model PretragaViewModel
+@{
+    ViewData["Title"] = "Pretraga oglasa";
+}
+
+@* The home page of a signed-in korisnik. Everything on it — the four filters, the sort and
+   the page — lives in the query string, so the state of the screen is its URL: a page link
+   and a re-sort carry the filters with them because they are built from the same view model
+   the form binds (PretragaViewModel.RutaSaStranom). *@
+
+<h1 class="h3 mb-4">Pretraga oglasa</h1>
+
+<form asp-action="Index" method="get" class="card card-body bg-light mb-4">
+    @* No Strana field: changing a filter or the sort starts again at the first page, because
+       page 3 of the old result set means nothing in the new one. *@
+    <div class="row g-3">
+        <div class="col-12 col-md-6 col-lg-3">
+            <label asp-for="OblastId" class="form-label"></label>
+            <select asp-for="OblastId" class="form-select">
+                <option value="">Sve oblasti</option>
+                @foreach (var oblast in Model.Oblasti)
+                {
+                    <option value="@oblast.Id">@oblast.Naziv</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-3">
+            <label asp-for="PredmetId" class="form-label"></label>
+
+            @* One select with an optgroup per oblast — no cascading second dropdown and no
+               JavaScript, the same shape the oglas form uses. *@
+            <select asp-for="PredmetId" class="form-select">
+                <option value="">Svi predmeti</option>
+                @foreach (var oblast in Model.Oblasti)
+                {
+                    <optgroup label="@oblast.Naziv">
+                        @foreach (var predmet in oblast.Predmeti)
+                        {
+                            <option value="@predmet.Id">@predmet.Naziv</option>
+                        }
+                    </optgroup>
+                }
+            </select>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-2">
+            <label asp-for="Lokacija" class="form-label"></label>
+            <select asp-for="Lokacija" asp-items="Html.GetEnumSelectList<Lokacija>()" class="form-select">
+                <option value="">Svejedno</option>
+            </select>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-2">
+            <label asp-for="MaxCena" class="form-label"></label>
+            <input asp-for="MaxCena" class="form-control" type="number" step="0.01" min="0.01"
+                   placeholder="bez ograničenja" />
+            <span asp-validation-for="MaxCena" class="text-danger small"></span>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-2">
+            <label asp-for="SortBy" class="form-label"></label>
+            <select asp-for="SortBy" asp-items="PretragaViewModel.SortOpcije" class="form-select"></select>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <button type="submit" class="btn btn-primary">Pretraži</button>
+
+        @if (Model.ImaFiltera)
+        {
+            @* Clears the four filters and keeps the sort, which the button does not claim to
+               touch — an učenik widening their search should not also lose "najjeftiniji prvo". *@
+            <a asp-action="Index" asp-route-SortBy="@Model.SortBy"
+               class="btn btn-outline-secondary">Poništi filtere</a>
+        }
+    </div>
+
+    <div class="form-text mt-2">
+        Oglas koji se drži i online i uživo odgovara na obe pretrage po lokaciji.
+    </div>
+</form>
+
+@if (Model.UkupnoRezultata == 0)
+{
+    <div class="alert alert-info">
+        Nijedan oglas ne odgovara zadatim filterima. Probajte sa širim izborom.
+    </div>
+}
+else
+{
+    <p class="text-muted">
+        @Mnozina.Broj(Model.UkupnoRezultata, "oglas", "oglasa", "oglasa")
+        @if (Model.UkupnoStrana > 1)
+        {
+            <text>· strana @Model.Strana od @Model.UkupnoStrana</text>
+        }
+    </p>
+
+    @* Results are oglasi, not predavači: a predavač with three matching oglasi is three
+       cards here, because those are three different offers. *@
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+        @foreach (var rezultat in Model.Rezultati)
+        {
+            var oglas = rezultat.Oglas;
+
+            <div class="col">
+                <div class="card card-oglas h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h2 class="h5 card-title mb-1">@oglas.Predmet?.Naziv</h2>
+                        <p class="text-muted small mb-3">@oglas.Predmet?.Oblast?.Naziv</p>
+
+                        <p class="fs-5 fw-semibold mb-2">
+                            @oglas.CenaCasa.ToString("N2") RSD
+                            <span class="fs-6 fw-normal text-muted">po času</span>
+                        </p>
+
+                        <p class="mb-3">
+                            <span class="badge bg-light text-dark border">@Html.DisplayFor(_ => oglas.Lokacija)</span>
+                        </p>
+
+                        @* Pushed to the bottom so the predavač line sits level across a row of
+                           cards whose predmet names wrap differently. *@
+                        <div class="mt-auto border-top pt-3">
+                            <div class="fw-semibold">@oglas.Predavac?.Ime @oglas.Predavac?.Prezime</div>
+                            <div class="@PrikazOcene.Klasa(rezultat.ProsecnaOcena)">
+                                @PrikazOcene.Tekst(rezultat.ProsecnaOcena, rezultat.BrojOcena)
+                            </div>
+                        </div>
+
+                        @* The whole card is the link to the oglas, where the kontakt podaci
+                           are: stretched-link spreads this one anchor over the card that
+                           contains it, so nothing above needs to be an anchor of its own and
+                           there is still exactly one link per card for a screen reader. *@
+                        <a asp-controller="Oglas" asp-action="Detalji" asp-route-id="@oglas.Id"
+                           class="stretched-link" aria-label="Detalji oglasa: @oglas.Predmet?.Naziv, @oglas.Predavac?.Ime @oglas.Predavac?.Prezime"></a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (Model.UkupnoStrana > 1)
+    {
+        <nav aria-label="Strane rezultata" class="mt-4">
+            <ul class="pagination flex-wrap">
+                @* Every link is the current query with one value changed, which is the whole
+                   of "the filters survive paging". *@
+                <li class="page-item @(Model.Strana == 1 ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index"
+                       asp-all-route-data="@Model.RutaSaStranom(Model.Strana - 1)">Prethodna</a>
+                </li>
+
+                @* Every page number is listed rather than windowed: the platform's whole
+                   inventory is a couple of dozen oglasi, so this is a handful of links. *@
+                @for (var strana = 1; strana <= Model.UkupnoStrana; strana++)
+                {
+                    <li class="page-item @(strana == Model.Strana ? "active" : "")">
+                        <a class="page-link" asp-action="Index"
+                           asp-all-route-data="@Model.RutaSaStranom(strana)">@strana</a>
+                    </li>
+                }
+
+                <li class="page-item @(Model.Strana == Model.UkupnoStrana ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index"
+                       asp-all-route-data="@Model.RutaSaStranom(Model.Strana + 1)">Sledeća</a>
+                </li>
+            </ul>
+        </nav>
+    }
+}

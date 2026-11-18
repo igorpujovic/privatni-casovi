@@ -1,0 +1,23 @@
+@model OglasFormViewModel
+@{
+    ViewData["Title"] = "Izmena oglasa";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <h1 class="h3 mb-4">Izmena oglasa</h1>
+
+        @* The id travels in the route, not in a hidden field: the action re-reads it from
+           there and re-checks that the oglas is this predavač's before it writes. *@
+        <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+            <partial name="_Forma" model="Model" />
+
+            <button type="submit" class="btn btn-primary">Sačuvaj izmene</button>
+            <a asp-action="Index" class="btn btn-link">Odustani</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

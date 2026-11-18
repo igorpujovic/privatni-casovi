@@ -1,0 +1,27 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<Korisnik> SignInManager
+@inject UserManager<Korisnik> UserManager
+
+<ul class="navbar-nav">
+@if (SignInManager.IsSignedIn(User))
+{
+    var korisnik = await UserManager.GetUserAsync(User);
+    <li class="nav-item">
+        <span class="nav-link text-dark">@korisnik?.Ime @korisnik?.Prezime</span>
+    </li>
+    <li class="nav-item">
+        <form asp-controller="Account" asp-action="Logout" method="post">
+            <button type="submit" class="nav-link btn btn-link text-dark">Odjava</button>
+        </form>
+    </li>
+}
+else
+{
+    <li class="nav-item">
+        <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Registracija</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Prijava</a>
+    </li>
+}
+</ul>

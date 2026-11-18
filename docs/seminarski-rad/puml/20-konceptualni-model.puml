@@ -1,0 +1,75 @@
+@startuml
+!include style.iuml
+
+hide circle
+skinparam linetype ortho
+
+class Korisnik {
+  ime
+  prezime
+  telefon
+  email
+  aktivan
+}
+
+class Predavač {
+  biografija
+  fotografija
+}
+
+class Učenik
+class Administrator
+
+class Oglas {
+  cenaČasa
+  lokacija
+  dostupnost
+  datumKreiranja
+  aktivan
+}
+
+class Predmet {
+  naziv
+}
+
+class Oblast {
+  naziv
+}
+
+class Ocena {
+  vrednost : 1..5
+}
+
+class Uloga {
+  naziv
+}
+
+Predavač -up-|> Korisnik
+Učenik -up-|> Korisnik
+Administrator -up-|> Korisnik
+
+Korisnik "1" -right- "1" Uloga : ima >
+
+Oblast "1" -- "1..*" Predmet : obuhvata >
+Predmet "1" -- "0..*" Oglas : oglašava se kroz >
+Predavač "1" -- "0..*" Oglas : objavljuje >
+
+Učenik "1" -- "0..*" Ocena : daje >
+Predavač "1" -- "0..*" Ocena : prima >
+
+Učenik "0..*" -- "0..*" Predavač : označava kao omiljenog >
+
+note bottom of Ocena
+  Jedan učenik ima najviše jednu ocenu
+  po predavaču i može je izmeniti.
+  Prosečna ocena se ne čuva —
+  računa se iz pojedinačnih ocena.
+end note
+
+note bottom of Oglas
+  Jedan oglas oglašava tačno jedan predmet.
+  Predavač koji drži tri predmeta
+  objavljuje tri oglasa.
+end note
+
+@enduml

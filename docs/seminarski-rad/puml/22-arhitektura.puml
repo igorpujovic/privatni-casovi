@@ -1,0 +1,43 @@
+@startuml
+!include style.iuml
+
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+package "Prezentacioni sloj" {
+  component "Views\n(Razor Pages, Bootstrap 5)" as V
+  component "ViewModels\n+ Data Annotations" as VM
+}
+
+package "Sloj poslovne logike" {
+  component "Controllers" as C
+  component "ASP.NET Core Identity\nautentifikacija i autorizacija" as ID
+  component "Model binding\n+ serverska validacija" as MB
+}
+
+package "Sloj pristupa podacima" {
+  component "IRepository<T>\ni specijalizovani repozitorijumi" as REPO
+  component "ApplicationDbContext\nEF Core 9" as CTX
+}
+
+package "Domenski model" {
+  component "Korisnik, Oglas, Predmet,\nOblast, Ocena, Omiljeni" as M
+}
+
+database "MS SQL Server\nPrivatniCasovi" as DB
+
+V ..> C : HTTP zahtev
+C ..> V : ViewResult
+C --> VM
+V --> VM
+C --> MB
+C --> ID
+C --> REPO
+REPO --> CTX
+CTX --> DB : SQL
+REPO ..> M
+CTX ..> M
+C ..> M
+ID ..> CTX
+
+@enduml

@@ -1,0 +1,92 @@
+@startuml
+!include style.iuml
+
+skinparam linetype ortho
+
+interface "IRepository<T>" as IR {
+  +GetAllAsync() : Task<IReadOnlyList<T>>
+  +GetByIdAsync(id) : Task<T?>
+  +Add(entity) : void
+  +Update(entity) : void
+  +SaveChangesAsync() : Task
+}
+
+class "Repository<T>" as R {
+  #_db : ApplicationDbContext
+  +GetAllAsync()
+  +GetByIdAsync(id)
+  +Add(entity)
+  +Update(entity)
+  +SaveChangesAsync()
+}
+
+interface IOglasRepository {
+  +PretragaAsync(oblastId, predmetId,
+ lokacija, maxCena, sortBy)
+  +AktivanAsync(id)
+  +AktivniZaPredavacaAsync(predavacId)
+  +SviZaPredavacaAsync(predavacId)
+  +SviUkljucujuciNeaktivneAsync()
+  +DeaktivirajAsync(id)
+  +AktivirajAsync(id)
+  +BrojVidljivihAsync()
+  +TopPredmetiAsync(koliko)
+  +TopOblastiAsync(koliko)
+}
+
+interface IOcenaRepository {
+  +ProsecnaOcenaAsync(predavacId)
+  +BrojOcenaAsync(predavacId)
+  +ZaPredavacaAsync(predavacId)
+  +PostojecaAsync(ucenikId, predavacId)
+  +TopPredavaciAsync(koliko)
+}
+
+interface IKorisnikRepository {
+  +PredavaciAsync()
+  +PredavacAsync(id)
+  +SviUkljucujuciNeaktivneAsync()
+  +UlogePoKorisnikuAsync()
+  +BrojAktivnihPoUloziAsync()
+  +PostaviAktivnostAsync(id, aktivan)
+}
+
+interface IPredmetRepository {
+  +OblastiAsync()
+  +OblastiSaPredmetimaAsync()
+}
+
+interface IOmiljeniRepository {
+  +ZaUcenikaAsync(ucenikId)
+  +PostojiAsync(ucenikId, predavacId)
+  +DodajAsync(ucenikId, predavacId)
+  +UkloniAsync(ucenikId, predavacId)
+}
+
+class OglasRepository
+class OcenaRepository
+class KorisnikRepository
+class PredmetRepository
+class OmiljeniRepository
+class ApplicationDbContext
+
+R ..|> IR
+IOglasRepository --|> IR
+IOcenaRepository --|> IR
+IKorisnikRepository --|> IR
+IPredmetRepository --|> IR
+
+OglasRepository --|> R
+OglasRepository ..|> IOglasRepository
+OcenaRepository --|> R
+OcenaRepository ..|> IOcenaRepository
+KorisnikRepository --|> R
+KorisnikRepository ..|> IKorisnikRepository
+PredmetRepository --|> R
+PredmetRepository ..|> IPredmetRepository
+OmiljeniRepository ..|> IOmiljeniRepository
+
+R --> ApplicationDbContext
+OmiljeniRepository --> ApplicationDbContext
+
+@enduml

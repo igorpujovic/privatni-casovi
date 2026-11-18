@@ -1,0 +1,32 @@
+@startuml
+!include style.iuml
+skinparam maxMessageSize 170
+
+title Sistemski dijagram sekvenci — UC04 Pretraga oglasa i UC05 Pregled detalja
+actor "Prijavljeni korisnik" as K
+participant ":Sistem" as S
+
+K -> S : otvoriPretragu()
+activate S
+S --> K : svi vidljivi oglasi, oblasti sa predmetima
+deactivate S
+
+K -> S : pretraziOglase(oblastId, predmetId, lokacija, maxCena, sortBy, strana)
+activate S
+alt maksimalna cena nije pozitivan iznos
+  S --> K : poruka uz polje i rezultati bez tog filtera
+else filteri su ispravni
+  S --> K : rezultati, ukupan broj rezultata i broj strana
+end
+deactivate S
+
+K -> S : prikaziOglas(oglasId)
+activate S
+alt oglas ne postoji, povučen je ili je predavač blokiran
+  S --> K : stranica "404 — nije pronađeno"
+else oglas je vidljiv
+  S --> K : predmet, oblast, cena časa, lokacija, dostupnost, prosečna ocena i kontakt podaci predavača
+end
+deactivate S
+
+@enduml

@@ -1,0 +1,26 @@
+@startuml
+!include style.iuml
+skinparam maxMessageSize 240
+
+title Kolaboracioni dijagram — prijaviSe()
+hide empty members
+skinparam nodesep 55
+skinparam ranksep 60
+object ":Posetilac" as A
+object ":AccountController" as C
+object ":KorisnikSignInManager" as SM
+object ":UserManager<Korisnik>" as UM
+object ":ApplicationDbContext" as CTX
+object "PrivatniCasovi : MS SQL" as DB
+
+A --> C : 1: Login(model)
+C --> SM : 2: PasswordSignInAsync(email, lozinka)
+SM --> UM : 3: FindByNameAsync(email)
+UM --> CTX : 4: upit nad Users
+CTX --> DB : 5: SELECT AspNetUsers
+SM --> SM : 6: CanSignInAsync(korisnik) = korisnik.Aktivan
+SM --> SM : 7: provera heša lozinke
+SM --> SM : 8: SignInAsync — kolačić
+C --> UM : 9: CheckPasswordAsync — razlikovanje blokade od greške
+
+@enduml

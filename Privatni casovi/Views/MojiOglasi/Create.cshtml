@@ -1,0 +1,21 @@
+@model OglasFormViewModel
+@{
+    ViewData["Title"] = "Novi oglas";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <h1 class="h3 mb-4">Novi oglas</h1>
+
+        <form asp-action="Create" method="post">
+            <partial name="_Forma" model="Model" />
+
+            <button type="submit" class="btn btn-primary">Objavi oglas</button>
+            <a asp-action="Index" class="btn btn-link">Odustani</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

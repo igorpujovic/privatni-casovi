@@ -1,0 +1,90 @@
+@using Privatni_casovi.Repositories
+@model OglasSaOcenom
+@{
+    var oglas = Model.Oglas;
+    var predavac = oglas.Predavac;
+    ViewData["Title"] = $"{oglas.Predmet?.Naziv} — {predavac?.Ime} {predavac?.Prezime}";
+}
+
+@* The page a pretraga card leads to, and the point of the whole application: there is no
+   booking, so the kontakt podaci below are where an učenik gets what they need to arrange a
+   čas. Everything above them is what they decide with before they write.
+
+   The model is the repository's OglasSaOcenom rather than a view model of its own, the same
+   type the pretraga cards are rendered from. Nothing here is a form — spec rule 5 is about
+   what a POST may bind to — and giving the two screens one shape is what keeps them from
+   disagreeing about a predavač's standing. *@
+
+@* Back to the pretraga, not back to *their* pretraga: the filters live in the query string of
+   the screen they came from, and the browser's back button is what carries them. Rebuilding
+   them here would mean threading the whole filter set through every card link. *@
+<a asp-controller="Pretraga" asp-action="Index" class="btn btn-link ps-0 mb-2">&larr; Nazad na pretragu</a>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <h1 class="h3 mb-1">@oglas.Predmet?.Naziv</h1>
+        <p class="text-muted">@oglas.Predmet?.Oblast?.Naziv</p>
+
+        <div class="card">
+            <div class="card-body">
+                <p class="fs-3 fw-semibold mb-1">
+                    @oglas.CenaCasa.ToString("N2") RSD
+                    <span class="fs-6 fw-normal text-muted">po času</span>
+                </p>
+
+                <p class="mb-4">
+                    <span class="badge bg-light text-dark border">@Html.DisplayFor(_ => oglas.Lokacija)</span>
+                </p>
+
+                <h2 class="h6 text-muted text-uppercase">Dostupnost</h2>
+
+                @* The predavač's own words, and read as such: the platform never reserves
+                   against a dostupnost, searches it, or interprets it. white-space:pre-line
+                   keeps the line breaks they typed without letting anything else through —
+                   Razor still encodes the text. *@
+                <p class="mb-0" style="white-space: pre-line">@oglas.Dostupnost</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="h6 text-muted text-uppercase mb-3">Predavač</h2>
+
+                @* A grid row rather than a sized <img>: the photo is whatever the predavač
+                   uploaded, and img-fluid inside a column is how every other screen renders
+                   one. A fixed pixel box here would be the only one in the application. *@
+                <div class="row align-items-center g-3 mb-3">
+                    <div class="col-4">
+                        <img src="@Fotografija.Putanja(predavac?.SlikaFajl)"
+                             alt="Fotografija predavača"
+                             class="img-fluid rounded border" />
+                    </div>
+
+                    <div class="col-8">
+                        <div class="fw-semibold">@predavac?.Ime @predavac?.Prezime</div>
+
+                        @* The same two numbers the pretraga card shows, spelled and greyed by
+                           the same helper — an unrated predavač reads "Nema ocena", muted,
+                           never 0,00. *@
+                        <div class="@PrikazOcene.Klasa(Model.ProsecnaOcena)">
+                            @PrikazOcene.Tekst(Model.ProsecnaOcena, Model.BrojOcena)
+                        </div>
+                    </div>
+                </div>
+
+                @* The handoff, and the same one the profil predavača shows — one partial,
+                   so the two screens cannot spell it differently. *@
+                <partial name="_KontaktPodaci" model="predavac" />
+
+                @* Through to the full profil: the biografija, everything else this
+                   predavač teaches, and the ocenjivanje and Omiljeni that live there. A
+                   plain link rather than a stretched one — the card it sits in already
+                   holds two anchors an učenik is meant to be able to click. *@
+                <a asp-controller="Predavac" asp-action="Profil" asp-route-id="@predavac?.Id"
+                   class="btn btn-outline-primary w-100 mt-3">Profil predavača</a>
+            </div>
+        </div>
+    </div>
+</div>

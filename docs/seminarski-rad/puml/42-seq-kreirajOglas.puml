@@ -1,0 +1,52 @@
+@startuml
+!include style.iuml
+skinparam maxMessageSize 150
+
+title Dijagram sekvenci — sistemska operacija kreirajOglas()
+actor "Predavač" as A
+box "Prezentacioni sloj" #FBFCFE
+  participant "MojiOglasi/Create.cshtml\n:View" as V
+end box
+box "Poslovna logika" #FBFCFE
+  participant ":MojiOglasiController" as C
+  participant ":UserManager\n<Korisnik>" as UM
+end box
+box "Pristup podacima" #FBFCFE
+  participant ":PredmetRepository" as PR
+  participant ":OglasRepository" as OR
+  participant ":ApplicationDbContext" as CTX
+end box
+database "PrivatniCasovi" as DB
+
+A -> V : popunjava predmet, cenu, lokaciju i dostupnost
+V -> C : POST Create(OglasFormViewModel)
+activate C
+note right of C : [Authorize(Roles = Predavac)]
+C -> PR : GetByIdAsync(model.PredmetId)
+PR -> DB : SELECT FROM Predmeti WHERE Id = @id
+PR --> C : Predmet?
+alt predmet ne postoji
+  C -> C : ModelState.AddModelError("Izabrani predmet ne postoji.")
+end
+C -> C : ModelState.IsValid
+alt podaci nisu ispravni
+  C -> PR : OblastiSaPredmetimaAsync()
+  PR --> C : katalog za padajuće liste
+  C --> V : View(model) sa porukama o greškama
+else podaci su ispravni
+  C -> UM : GetUserId(User)
+  UM --> C : predavacId
+  C -> C : new Oglas{ PredavacId, DatumKreiranja = DateTime.Now, Aktivan = true }
+  C -> C : Prepisi(model, oglas)
+  C -> OR : Add(oglas)
+  OR -> CTX : Oglasi.Add(oglas)
+  C -> OR : SaveChangesAsync()
+  OR -> CTX : SaveChangesAsync()
+  CTX -> DB : INSERT INTO Oglasi
+  DB --> CTX : ok
+  C --> V : Redirect na "Moji oglasi" + "Oglas je objavljen."
+end
+deactivate C
+V --> A : novi oglas u listi i u pretrazi
+
+@enduml

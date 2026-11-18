@@ -1,0 +1,52 @@
+@startuml
+!include style.iuml
+skinparam maxMessageSize 150
+
+title Dijagram sekvenci — sistemska operacija registrujKorisnika()
+actor "Posetilac" as A
+box "Prezentacioni sloj" #FBFCFE
+  participant "Register.cshtml\n:View" as V
+end box
+box "Poslovna logika" #FBFCFE
+  participant ":AccountController" as C
+  participant ":UserManager\n<Korisnik>" as UM
+end box
+box "Pristup podacima" #FBFCFE
+  participant ":ApplicationDbContext" as CTX
+end box
+database "PrivatniCasovi" as DB
+
+A -> V : popunjava formu
+V -> C : POST Register(RegistracijaViewModel)
+activate C
+C -> C : ModelState.IsValid
+alt podaci nisu ispravni
+  C --> V : View(model) sa porukama o greškama
+else podaci su ispravni
+  C -> C : novi Korisnik { UserName = Email, Aktivan = true }
+  C -> UM : CreateAsync(korisnik, lozinka)
+  activate UM
+  UM -> UM : hešovanje lozinke (PBKDF2)
+  UM -> CTX : Users.Add(korisnik); SaveChangesAsync()
+  CTX -> DB : INSERT INTO AspNetUsers
+  DB --> CTX : ok
+  CTX --> UM : 1
+  UM --> C : IdentityResult
+  deactivate UM
+  alt email je već zauzet
+    C --> V : "Korisnik sa ovom email adresom već postoji."
+  else nalog je kreiran
+    C -> UM : AddToRoleAsync(korisnik, uloga)
+    activate UM
+    UM -> CTX : UserRoles.Add(...); SaveChangesAsync()
+    CTX -> DB : INSERT INTO AspNetUserRoles
+    DB --> CTX : ok
+    UM --> C : IdentityResult
+    deactivate UM
+    C --> V : RedirectToAction(Login)
+  end
+end
+deactivate C
+V --> A : rezultat registracije
+
+@enduml

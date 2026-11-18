@@ -1,0 +1,8 @@
+@startuml
+!pragma layout smetana
+class A {
+  +x : int
+}
+class B
+A --> B : koristi
+@enduml

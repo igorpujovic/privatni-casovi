@@ -1,0 +1,42 @@
+@startuml
+!include style.iuml
+skinparam maxMessageSize 150
+
+title Dijagram sekvenci — sistemska operacija prikaziStatistiku()
+actor "Administrator" as A
+box "Prezentacioni sloj" #FBFCFE
+  participant "Admin/Statistika.cshtml\n:View" as V
+end box
+box "Poslovna logika" #FBFCFE
+  participant ":AdminController" as C
+end box
+box "Pristup podacima" #FBFCFE
+  participant ":KorisnikRepository" as KR
+  participant ":OglasRepository" as OGR
+  participant ":OcenaRepository" as OCR
+end box
+database "PrivatniCasovi" as DB
+
+A -> V : otvara stranicu "Statistika"
+V -> C : GET Statistika()
+activate C
+C -> KR : BrojAktivnihPoUloziAsync()
+KR -> DB : SELECT COUNT GROUP BY uloga WHERE Aktivan = 1
+KR --> C : Dictionary<uloga, broj>
+C -> OGR : BrojVidljivihAsync()
+OGR -> DB : SELECT COUNT WHERE Aktivan = 1 AND Predavac.Aktivan = 1
+OGR --> C : int
+C -> OGR : TopPredmetiAsync(5)
+OGR -> DB : GROUP BY PredmetId, Naziv ORDER BY COUNT DESC
+OGR --> C : IReadOnlyList<StavkaStatistike>
+C -> OGR : TopOblastiAsync(5)
+OGR -> DB : GROUP BY OblastId, Naziv ORDER BY COUNT DESC
+OGR --> C : IReadOnlyList<StavkaStatistike>
+C -> OCR : TopPredavaciAsync(5)
+OCR -> DB : GROUP BY PredavacId, JOIN AspNetUsers,\nORDER BY COUNT DESC, AVG DESC
+OCR --> C : IReadOnlyList<TopPredavac>
+C --> V : View(StatistikaViewModel)
+deactivate C
+V --> A : brojači i tri rang-liste
+
+@enduml

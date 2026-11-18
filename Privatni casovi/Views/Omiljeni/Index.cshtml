@@ -1,0 +1,94 @@
+@model IReadOnlyList<Korisnik>
+@{
+    ViewData["Title"] = "Omiljeni predavači";
+}
+
+@* One učenik's own list, and only ever their own: the action behind it takes no id, so there
+   is no other list to ask for. The predavači on it are not told they are here, and there is
+   no count of it anywhere on their profil.
+
+   A list of korisnici rather than a view model, unlike the other screens: this page shows one
+   thing, and IOmiljeniRepository.ZaUcenikaAsync already returns exactly it — including
+   dropping a predavač who has been blocked since being marked, which is the same
+   disappearance ADR-0001 gives them everywhere else. *@
+
+@* Ukloni redirects back here when it was pressed here, so this is where its outcome is read. *@
+@if (TempData["Poruka"] != null)
+{
+    <div class="alert alert-success">@TempData["Poruka"]</div>
+}
+
+<h1 class="h3 mb-4">Omiljeni predavači</h1>
+
+@if (Model.Count == 0)
+{
+    <div class="alert alert-info mb-0">
+        Još nemate nijednog omiljenog predavača. Predavača dodajete u omiljene dugmetom na
+        njegovom profilu — do profila se stiže preko
+        <a asp-controller="Pretraga" asp-action="Index">pretrage oglasa</a>.
+    </div>
+}
+else
+{
+    <p class="text-muted">@Mnozina.Broj(Model.Count, "predavač", "predavača", "predavača")</p>
+
+    <div class="row row-cols-1 row-cols-lg-2 g-3">
+        @foreach (var predavac in Model)
+        {
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            @* The same img-fluid-in-a-column the other three screens render a
+                               photo with, rather than a sized box: what a predavač uploaded is
+                               whatever shape it is. *@
+                            <div class="col-3">
+                                <img src="@Fotografija.Putanja(predavac.SlikaFajl)"
+                                     alt="Fotografija predavača"
+                                     class="img-fluid rounded border" />
+                            </div>
+
+                            <div class="col-9">
+                                @* An h2 under the page's h1, which makes the partial's own
+                                   "Kontakt podaci" its sibling — the same relationship those
+                                   two headings have on the oglas detail page. *@
+                                <h2 class="h5 mb-2">@predavac.Ime @predavac.Prezime</h2>
+
+                                @* The handoff, and the whole reason a list of saved predavači
+                                   is worth having: the same partial the oglas page and the
+                                   profil show, so the three cannot spell it differently. *@
+                                <partial name="_KontaktPodaci" model="predavac" />
+
+                                @* No stretched-link here, unlike the pretraga and profil
+                                   cards: this card has two actions, and a link spread over
+                                   the whole of it would swallow the button. *@
+                                <div class="d-flex flex-wrap gap-2 mt-3">
+                                    <a asp-controller="Predavac" asp-action="Profil" asp-route-id="@predavac.Id"
+                                       class="btn btn-outline-primary btn-sm">
+                                        Profil i oglasi
+                                    </a>
+
+                                    <form asp-action="Ukloni" method="post">
+                                        <input type="hidden" name="predavacId" value="@predavac.Id" />
+
+                                        @* Says the button was pressed here, so Ukloni comes
+                                           back here instead of to the profil. *@
+                                        <input type="hidden" name="saListe" value="true" />
+
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            Ukloni iz omiljenih
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <p class="text-muted small mt-3 mb-0">
+        Lista je vidljiva samo vama — predavač ne zna da ste ga dodali u omiljene.
+    </p>
+}

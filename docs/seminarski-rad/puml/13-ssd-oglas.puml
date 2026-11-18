@@ -1,0 +1,32 @@
+@startuml
+!include style.iuml
+skinparam maxMessageSize 170
+
+title Sistemski dijagram sekvenci — UC12 Kreiranje i UC14 Povlačenje oglasa
+actor "Predavač" as P
+participant ":Sistem" as S
+
+P -> S : otvoriFormuZaOglas()
+activate S
+S --> P : prazna forma i katalog oblasti sa predmetima
+deactivate S
+
+P -> S : kreirajOglas(predmetId, cenaCasa, lokacija, dostupnost)
+activate S
+alt podaci nisu ispravni ili predmet ne postoji
+  S --> P : poruke o greškama uz polja forme
+else podaci su ispravni
+  S --> P : "Oglas je objavljen." i lista sopstvenih oglasa
+end
+deactivate S
+
+P -> S : povuciOglas(oglasId)
+activate S
+alt oglas ne pripada prijavljenom predavaču
+  S --> P : "403 — pristup odbijen"
+else oglas pripada predavaču
+  S --> P : "Oglas je povučen." — oglas nestaje iz pretrage, ali ostaje u listi sopstvenih oglasa
+end
+deactivate S
+
+@enduml

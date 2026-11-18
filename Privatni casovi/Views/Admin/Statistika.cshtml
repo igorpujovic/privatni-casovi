@@ -1,0 +1,160 @@
+@model StatistikaViewModel
+@{
+    ViewData["Title"] = "Statistika";
+}
+
+@* What the platform looks like from above: how many korisnici and oglasi are live, and the
+   three rankings the brief asks for.
+
+   Every number here counts what is visible — a blocked korisnik and a deactivated oglas are
+   still rows in the database, and ADR-0001 has statistics count active records only. The
+   counting happens in the repositories; this screen renders and does not filter. *@
+
+<div class="row align-items-center mb-4">
+    <div class="col-sm">
+        <h1 class="h3 mb-0">Statistika</h1>
+    </div>
+    <div class="col-sm-auto mt-2 mt-sm-0 text-sm-end">
+        <span class="text-muted small">Aktivni korisnici i oglasi u pretrazi</span>
+    </div>
+</div>
+
+<div class="row row-cols-2 row-cols-md-3 row-cols-xl-5 g-3 mb-4">
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h6 text-muted mb-1">Korisnici</h2>
+                <p class="fs-2 fw-semibold mb-0">@Model.BrojKorisnika</p>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h6 text-muted mb-1">Predavači</h2>
+                <p class="fs-2 fw-semibold mb-0">@Model.BrojPredavaca</p>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h6 text-muted mb-1">Učenici</h2>
+                <p class="fs-2 fw-semibold mb-0">@Model.BrojUcenika</p>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h6 text-muted mb-1">Administratori</h2>
+                <p class="fs-2 fw-semibold mb-0">@Model.BrojAdministratora</p>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                @* „Oglasi u pretrazi“ and not „Aktivni oglasi“, which would be a different
+                   number by a word this application has already spent: the Oglasi screen
+                   renders an oglas under a blocked predavač as „Predavač blokiran“ rather than
+                   „Aktivan“, so calling twenty-two of those twenty-four rows „aktivni“ here
+                   would have the two admin screens disagreeing. This is what an učenik can
+                   find, which is what the count is for. *@
+                <h2 class="h6 text-muted mb-1">Oglasi u pretrazi</h2>
+                <p class="fs-2 fw-semibold mb-0">@Model.BrojVidljivihOglasa</p>
+                <p class="text-muted small mb-0">Aktivni, kod neblokiranih predavača</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    @* „Sa najviše oglasa“ and deliberately not „najtraženiji“. An ocena attaches to the
+       predavač and never to the oglas, so nothing this platform stores can say which predmet
+       učenici want most — these two count what predavači offer. *@
+    <div class="col-lg-6">
+        <partial name="_RangTabela" model="@(new RangTabelaViewModel(
+            Naslov: "Predmeti sa najviše oglasa",
+            Opis: "Broj oglasa u pretrazi po predmetu.",
+            KolonaNaziv: "Predmet",
+            Prazno: "Nema oglasa u pretrazi.",
+            Stavke: Model.TopPredmeti))" />
+    </div>
+
+    <div class="col-lg-6">
+        <partial name="_RangTabela" model="@(new RangTabelaViewModel(
+            Naslov: "Oblasti sa najviše oglasa",
+            Opis: "Broj oglasa u pretrazi po oblasti.",
+            KolonaNaziv: "Oblast",
+            Prazno: "Nema oglasa u pretrazi.",
+            Stavke: Model.TopOblasti))" />
+    </div>
+
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                @* Ordered by broj ocena, ties broken by the average — never by the average
+                   alone, which would put a single 5,00 above a predavač with forty ocene.
+                   A predavač nobody has rated is not on this table at all: it is built by
+                   grouping ocene, and they have none to group.
+
+                   Headed „sa najviše ocena“ and not „najbolje ocenjeni“, for the same reason
+                   the two tables above are headed „sa najviše oglasa“: the heading has to name
+                   what the rows are actually sorted by. „Najbolje ocenjeni“ would promise an
+                   ordering by prosečna ocena, and the predavač with the highest average on the
+                   platform can sit below this table's fifth row.
+
+                   Its own markup rather than the partial above: this table ranks korisnici and
+                   not oglasi, so it carries two numbers instead of one and a link on the name. *@
+                <h2 class="h5">Predavači sa najviše ocena</h2>
+                <p class="text-muted small">
+                    Rangirano po broju ocena; predavači sa istim brojem ocena po prosečnoj oceni.
+                </p>
+
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-muted">#</th>
+                                <th scope="col">Predavač</th>
+                                <th scope="col" class="text-end">Broj ocena</th>
+                                <th scope="col" class="text-end">Prosečna ocena</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.TopPredavaci.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-muted">Nijedan predavač još nije ocenjen.</td>
+                                </tr>
+                            }
+                            @for (var i = 0; i < Model.TopPredavaci.Count; i++)
+                            {
+                                var red = Model.TopPredavaci[i];
+
+                                <tr>
+                                    <td class="text-muted">@(i + 1).</td>
+                                    <td>
+                                        @* An administrator reading a ranking wants to open
+                                           what is on it — this is the same public profil
+                                           every signed-in korisnik sees. *@
+                                        <a asp-controller="Predavac" asp-action="Profil" asp-route-id="@red.Predavac.Id">
+                                            @red.Predavac.Ime @red.Predavac.Prezime
+                                        </a>
+                                    </td>
+                                    <td class="text-end">@red.BrojOcena</td>
+                                    @* PrikazOcene.Prosek rather than a format string in the
+                                       view: the average is spelled the same way here as on
+                                       the profil this row links to. There is no null case —
+                                       an unrated predavač cannot be a row. *@
+                                    <td class="text-end">@PrikazOcene.Prosek(red.ProsecnaOcena)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

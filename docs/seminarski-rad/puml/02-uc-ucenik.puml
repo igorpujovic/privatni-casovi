@@ -1,0 +1,21 @@
+@startuml
+!include style.iuml
+left to right direction
+actor "Učenik" as U
+rectangle "Privatni časovi" {
+  usecase UC06 as "UC06 Pregled profila predavača"
+  usecase UC07 as "UC07 Ocenjivanje predavača"
+  usecase UC08 as "UC08 Izmena postojeće ocene"
+  usecase UC09 as "UC09 Dodavanje predavača u omiljene"
+  usecase UC10 as "UC10 Uklanjanje predavača iz omiljenih"
+  usecase UC11 as "UC11 Pregled liste omiljenih"
+}
+U --> UC06
+U --> UC07
+U --> UC09
+U --> UC10
+U --> UC11
+UC08 ..> UC07 : <<extend>>
+UC07 ..> UC06 : <<include>>
+UC09 ..> UC06 : <<include>>
+@enduml

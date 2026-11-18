@@ -1,0 +1,37 @@
+@model Korisnik
+
+@* The predavač's kontakt podaci, set apart because they are what an učenik came for. There
+   is no messaging on the platform — this is the handoff from the application to the čas, and
+   both are clickable so a phone dials and a mail client opens.
+
+   A partial because three screens show it: the oglas detail page, the profil predavača,
+   and the omiljeni list. They are the same handoff and must not drift into being spelled
+   three ways, which is the argument PrikazOcene already makes about the ocena line beside it.
+
+   The model is nullable for the reason KontaktPodaci's own doc gives: Oglas.Predavac is a
+   nullable navigation, the value is never actually absent, and a guard against a state the
+   application cannot produce would be dead code.
+
+   The heading is an h2 on both callers: on the profil it follows the h1 that names the
+   predavač, and on the oglas page it is the sibling of that card's own "Predavač". An h3
+   would read better under the latter and skip a level under the former. *@
+
+<div class="border rounded p-3 bg-light">
+    <h2 class="h6 mb-2">Kontakt podaci</h2>
+
+    <dl class="row mb-0 small">
+        <dt class="col-4 fw-normal text-muted">Email</dt>
+        <dd class="col-8 mb-1 text-break">
+            <a href="@KontaktPodaci.EmailHref(Model?.Email)">@Model?.Email</a>
+        </dd>
+
+        <dt class="col-4 fw-normal text-muted">Telefon</dt>
+        <dd class="col-8 mb-0 text-break">
+            <a href="@KontaktPodaci.TelefonHref(Model?.Telefon)">@Model?.Telefon</a>
+        </dd>
+    </dl>
+
+    <div class="form-text mt-2 mb-0">
+        Čas dogovarate direktno sa predavačem — platforma ne zakazuje termine.
+    </div>
+</div>

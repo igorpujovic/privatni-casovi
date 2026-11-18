@@ -1,0 +1,34 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+/* A pretraga card is one big link (Bootstrap's .stretched-link). The cursor already says so
+   once the pointer is over it; this says so from across the grid, which is what makes an
+   učenik try clicking one in the first place. :focus-within is not decoration — the anchor
+   inside is empty, so keyboard focus would otherwise land on a card with nothing to show. */
+.card-oglas {
+  transition: box-shadow .15s ease-in-out, border-color .15s ease-in-out;
+}
+
+.card-oglas:hover, .card-oglas:focus-within {
+  border-color: #86b7fe;
+  box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .1);
+}

@@ -1,0 +1,62 @@
+@model MojeOceneViewModel
+@{
+    ViewData["Title"] = "Moje ocene";
+}
+
+@* Every ocena this predavač has received, and nothing about who left it. There is no učenik
+   on this page to render by mistake: the model carries bare int scores, because
+   IOcenaRepository.ZaPredavacaAsync drops the UcenikId in the query. *@
+
+<h1 class="h3 mb-4">Moje ocene</h1>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="h6 text-muted mb-1">Prosečna ocena</h2>
+
+                @if (Model.ProsecnaOcena is null)
+                {
+                    @* The same "Nema ocena" the pretraga and the profil show — never 0,00,
+                       which would read as a badly rated predavač rather than a new one. *@
+                    <p class="fs-4 mb-0 text-muted">@PrikazOcene.Nema</p>
+                }
+                else
+                {
+                    @* PrikazOcene again, in its stacked form: this card shows the same two
+                       numbers the profil shows on one line, and the format and the plural
+                       forms belong to that helper on both screens. *@
+                    <p class="fs-2 fw-semibold mb-0">@PrikazOcene.Prosek(Model.ProsecnaOcena.Value)</p>
+                    <p class="text-muted mb-0">@PrikazOcene.Broj(Model.BrojOcena)</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        @if (Model.Ocene.Count == 0)
+        {
+            <div class="alert alert-info mb-0">
+                Još vas niko nije ocenio. Ocene ostavljaju učenici na vašem profilu.
+            </div>
+        }
+        else
+        {
+            <h2 class="h6">Pojedinačne ocene</h2>
+
+            @* Wrapping badges rather than a table, because a table of one column is a list
+               with borders — and there is no second column to give it: an ocena is a score
+               and nothing else, and who left it is exactly what this page must not say. *@
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                @foreach (var ocena in Model.Ocene)
+                {
+                    <span class="badge bg-light text-dark border fs-6 fw-semibold">@ocena</span>
+                }
+            </div>
+
+            <p class="text-muted small mb-0">
+                Ocene su anonimne — ne vidite koji učenik je ostavio koju ocenu.
+            </p>
+        }
+    </div>
+</div>

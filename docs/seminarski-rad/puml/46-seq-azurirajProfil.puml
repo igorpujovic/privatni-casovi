@@ -1,0 +1,48 @@
+@startuml
+!include style.iuml
+skinparam maxMessageSize 150
+
+title Dijagram sekvenci — sistemska operacija azurirajProfil()
+actor "Predavač" as A
+box "Prezentacioni sloj" #FBFCFE
+  participant "Profil/Index.cshtml\n:View" as V
+end box
+box "Poslovna logika" #FBFCFE
+  participant ":ProfilController" as C
+  participant ":UserManager\n<Korisnik>" as UM
+  participant "Fotografija" as F
+end box
+box "Pristup podacima" #FBFCFE
+  participant ":ApplicationDbContext" as CTX
+end box
+database "PrivatniCasovi" as DB
+
+A -> V : menja lične podatke, biografiju i bira fotografiju
+V -> C : POST Index(ProfilViewModel) — multipart/form-data
+activate C
+C -> UM : GetUserAsync(User)
+UM -> CTX : Users.FindAsync(id)
+CTX -> DB : SELECT FROM AspNetUsers
+UM --> C : Korisnik
+C -> C : ModelState.IsValid\n[DozvoljenaFotografija]: jpg/jpeg/png, najviše 2 MB
+alt podaci nisu ispravni
+  C --> V : View(model) sa porukama — nijedna datoteka nije sačuvana
+else podaci su ispravni
+  C -> C : prepisivanje Ime, Prezime, Telefon, Biografija
+  alt korisnik je izabrao novu fotografiju
+    C -> F : SacuvajAsync(upload, wwwroot)
+    F -> F : novi naziv = Guid + ekstenzija
+    F --> C : naziv datoteke
+    C -> C : korisnik.SlikaFajl = naziv
+  end
+  C -> UM : UpdateAsync(korisnik)
+  UM -> CTX : SaveChangesAsync()
+  CTX -> DB : UPDATE AspNetUsers
+  DB --> CTX : ok
+  UM --> C : IdentityResult
+  C --> V : Redirect + "Profil je sačuvan."
+end
+deactivate C
+V --> A : ažuriran profil i nova fotografija
+
+@enduml

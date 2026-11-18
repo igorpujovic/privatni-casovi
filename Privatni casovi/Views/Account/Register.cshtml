@@ -1,0 +1,75 @@
+﻿@model RegistracijaViewModel
+@{
+    ViewData["Title"] = "Registracija";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h1 class="h3 mb-4">Registracija</h1>
+
+        <form asp-action="Register" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <fieldset class="mb-3">
+                <legend class="col-form-label fw-semibold">Registrujem se kao</legend>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" asp-for="Uloga" value="Predavac" id="uloga-predavac" />
+                    <label class="form-check-label" for="uloga-predavac">
+                        Predavač — objavljujem oglase za časove koje držim
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" asp-for="Uloga" value="Ucenik" id="uloga-ucenik" />
+                    <label class="form-check-label" for="uloga-ucenik">
+                        Učenik — tražim predavača i ocenjujem ga
+                    </label>
+                </div>
+                <span asp-validation-for="Uloga" class="text-danger"></span>
+            </fieldset>
+
+            <div class="mb-3">
+                <label asp-for="Ime" class="form-label"></label>
+                <input asp-for="Ime" class="form-control" autocomplete="given-name" />
+                <span asp-validation-for="Ime" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Prezime" class="form-label"></label>
+                <input asp-for="Prezime" class="form-control" autocomplete="family-name" />
+                <span asp-validation-for="Prezime" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Telefon" class="form-label"></label>
+                <input asp-for="Telefon" class="form-control" autocomplete="tel" />
+                <span asp-validation-for="Telefon" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" autocomplete="username" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+                <div class="form-text">Email je ujedno i vaše korisničko ime za prijavu.</div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Lozinka" class="form-label"></label>
+                <input asp-for="Lozinka" class="form-control" autocomplete="new-password" />
+                <span asp-validation-for="Lozinka" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="PotvrdaLozinke" class="form-label"></label>
+                <input asp-for="PotvrdaLozinke" class="form-control" autocomplete="new-password" />
+                <span asp-validation-for="PotvrdaLozinke" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Registruj se</button>
+            <a asp-action="Login" class="btn btn-link">Prijavi se</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

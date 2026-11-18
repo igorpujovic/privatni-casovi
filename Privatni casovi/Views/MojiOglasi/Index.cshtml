@@ -1,0 +1,89 @@
+@model IReadOnlyList<Oglas>
+@{
+    ViewData["Title"] = "Moji oglasi";
+}
+
+@* The only listing outside the admin screens that shows withdrawn oglasi — this is where
+   their own predavač brings one back. *@
+
+<div class="row align-items-center mb-4">
+    <div class="col-sm">
+        <h1 class="h3 mb-0">Moji oglasi</h1>
+    </div>
+    <div class="col-sm-auto mt-3 mt-sm-0">
+        <a asp-action="Create" class="btn btn-primary">Objavi novi oglas</a>
+    </div>
+</div>
+
+@if (TempData["Poruka"] != null)
+{
+    <div class="alert alert-success">@TempData["Poruka"]</div>
+}
+
+@if (Model.Count == 0)
+{
+    <div class="alert alert-info">
+        Još niste objavili nijedan oglas. Objavite prvi da bi vas učenici pronašli u pretrazi.
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th scope="col">Predmet</th>
+                    <th scope="col">Cena časa</th>
+                    <th scope="col">Lokacija</th>
+                    <th scope="col">Dostupnost</th>
+                    <th scope="col">Objavljen</th>
+                    <th scope="col">Status</th>
+                    <th scope="col" class="text-end">Akcije</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var oglas in Model)
+                {
+                    <tr>
+                        <td>
+                            @oglas.Predmet?.Naziv
+                            <div class="text-muted small">@oglas.Predmet?.Oblast?.Naziv</div>
+                        </td>
+                        <td class="text-nowrap">@oglas.CenaCasa.ToString("N2") RSD</td>
+                        <td>@Html.DisplayFor(_ => oglas.Lokacija)</td>
+                        <td>@oglas.Dostupnost</td>
+                        <td class="text-nowrap">@oglas.DatumKreiranja.ToString("dd.MM.yyyy.")</td>
+                        <td>
+                            @if (oglas.Aktivan)
+                            {
+                                <span class="badge bg-success text-white">Objavljen</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary text-white">Povučen</span>
+                            }
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <a asp-action="Edit" asp-route-id="@oglas.Id" class="btn btn-sm btn-outline-primary">Izmeni</a>
+
+                            @* Withdrawing and republishing change data, so they are POSTs with
+                               an antiforgery token, never links. *@
+                            @if (oglas.Aktivan)
+                            {
+                                <form asp-action="Deaktiviraj" asp-route-id="@oglas.Id" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">Povuci</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-action="Aktiviraj" asp-route-id="@oglas.Id" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-success">Objavi ponovo</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

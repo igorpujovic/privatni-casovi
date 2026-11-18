@@ -1,0 +1,54 @@
+skinparam dpi 200
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam shadowing false
+skinparam backgroundColor #FFFFFF
+skinparam roundcorner 4
+skinparam ArrowColor #33475B
+skinparam ArrowFontColor #1B2733
+skinparam NoteBackgroundColor #FFF8DC
+skinparam NoteBorderColor #C9B458
+skinparam actor {
+  BackgroundColor #EEF3FA
+  BorderColor #33475B
+}
+skinparam usecase {
+  BackgroundColor #F7FAFF
+  BorderColor #33475B
+}
+skinparam class {
+  BackgroundColor #F7FAFF
+  BorderColor #33475B
+  ArrowColor #33475B
+}
+skinparam package {
+  BackgroundColor #FBFCFE
+  BorderColor #8A99AD
+}
+skinparam component {
+  BackgroundColor #F7FAFF
+  BorderColor #33475B
+}
+skinparam sequence {
+  ArrowColor #33475B
+  LifeLineBorderColor #8A99AD
+  LifeLineBackgroundColor #EEF3FA
+  ParticipantBackgroundColor #F7FAFF
+  ParticipantBorderColor #33475B
+  ActorBackgroundColor #EEF3FA
+  ActorBorderColor #33475B
+  BoxBackgroundColor #FAFBFD
+  BoxBorderColor #C3CBD6
+  GroupBackgroundColor #EEF3FA
+  GroupBorderColor #8A99AD
+}
+skinparam entity {
+  BackgroundColor #F7FAFF
+  BorderColor #33475B
+}
+skinparam object {
+  BackgroundColor #F7FAFF
+  BorderColor #33475B
+  ArrowColor #33475B
+  FontStyle plain
+}

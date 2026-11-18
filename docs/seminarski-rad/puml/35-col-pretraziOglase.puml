@@ -1,0 +1,30 @@
+@startuml
+!include style.iuml
+skinparam maxMessageSize 240
+
+title Kolaboracioni dijagram — pretraziOglase()
+hide empty members
+skinparam nodesep 55
+skinparam ranksep 60
+object ":Prijavljeni korisnik" as A
+object ":PretragaController" as C
+object ":PretragaViewModel" as VM
+object ":OglasRepository" as OR
+object ":PredmetRepository" as PR
+object ":ApplicationDbContext" as CTX
+object "PrivatniCasovi : MS SQL" as DB
+
+A --> C : 1: Index(model)
+C --> VM : 2: SortBy = Sortiranje.Prepoznat(SortBy)
+C --> OR : 3: PretragaAsync(oblastId, predmetId, lokacija, maxCena, sortBy)
+OR --> OR : 4: Vidljivi() + filteri + Sortirano() + SaOcenom()
+OR --> CTX : 5: ToListAsync()
+CTX --> DB : 6: SELECT ... ORDER BY ...
+C --> VM : 7: UkupnoRezultata, UkupnoStrana, Strana
+C --> VM : 8: Rezultati = Skip/Take
+C --> PR : 9: OblastiSaPredmetimaAsync()
+PR --> CTX : 10: Oblasti.Include(Predmeti)
+CTX --> DB : 11: SELECT Oblasti, Predmeti
+C --> VM : 12: Oblasti
+
+@enduml
