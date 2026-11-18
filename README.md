@@ -128,4 +128,4 @@ The test script is in `docs/zavrsni-rad/testovi/testovi.py`.
 
 ## Author
 
-Igor Pujović · [GitHub](https://github.com/igorpujovic) 
+Igor Pujović · [GitHub](https://github.com/igorpujovic)  
